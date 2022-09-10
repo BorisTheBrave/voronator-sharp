@@ -58,6 +58,12 @@ namespace VoronatorSharp
                 clipMin = Vector2.Min(clipMin, triangleVertices[i]);
                 clipMax = Vector2.Max(clipMax, triangleVertices[i]);
             }
+            // Inflate the clipping area slightly
+            // This ensures that unbounded cells will still share a border
+            // after clipping.
+            var expand = 1e-6f * (clipMax - clipMin);
+            clipMin -= expand;
+            clipMax += expand;
         }
 
         private void Init(IList<Vector2> points)

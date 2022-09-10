@@ -19,10 +19,10 @@ namespace VoronatorSharp.Test
             CollectionAssert.AreEqual(
                 new List<Vector2>()
                 {
-                    new Vector2(0, 0),
-                    new Vector2(0.5f, 0),
+                    new Vector2(-1e-6f, -1e-6f),
+                    new Vector2(0.5f, -1e-6f),
                     new Vector2(0.5f, 0.5f),
-                    new Vector2(0, 0.5f),
+                    new Vector2(-1e-6f, 0.5f),
                 },
                 v.GetClippedPolygon(0)
                 );
@@ -52,7 +52,7 @@ namespace VoronatorSharp.Test
                 new Vector2(1, 1),
                 new Vector2(0, 1),
             };
-            var v = new Voronator(points);
+            var v = new Voronator(points, new Vector2(0, 0), new Vector2(1, 1));
 
             CollectionAssert.AreEqual(
                 new List<Vector2>()
