@@ -82,7 +82,7 @@ Returns the Voronoi cells that border the given cell.
 This ignores clipping and may return odd results in some degenerate cases.
 
 ```csharp
-public IEnumerable<int> Voronator.Neighbors(int i)
+public IEnumerable<int> Voronator.ClippedNeighbors(int i)
 ```
 Returns the Voronoi cells that border the given cell inside the clipping rectangle.
 
