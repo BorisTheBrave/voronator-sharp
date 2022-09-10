@@ -23,7 +23,7 @@ namespace VoronatorSharp
         private int[] hullIndex;
 
         // triangle circumcenters, plus some extra vertices on the end
-        private List<Vector2> triangleVertices;
+        private List<Vector2> circumcenters;
 
         /// <summary>
         /// Map from point index to a half edge. 
@@ -61,10 +61,10 @@ namespace VoronatorSharp
                 clipMin = Vector2.Min(clipMin, points[i]);
                 clipMax = Vector2.Max(clipMax, points[i]);
             }
-            for (var i = 0; i < triangleVertices.Count; i++)
+            for (var i = 0; i < circumcenters.Count; i++)
             {
-                clipMin = Vector2.Min(clipMin, triangleVertices[i]);
-                clipMax = Vector2.Max(clipMax, triangleVertices[i]);
+                clipMin = Vector2.Min(clipMin, circumcenters[i]);
+                clipMax = Vector2.Max(clipMax, circumcenters[i]);
             }
             // Inflate the clipping area slightly
             // This ensures that unbounded cells will still share a border
@@ -116,11 +116,11 @@ namespace VoronatorSharp
 
 
             // Load the vertices of the mesh
-            triangleVertices = new List<Vector2>();
+            circumcenters = new List<Vector2>();
             var triangleCount = d.Triangles.Length / 3;
             for (var triangleId = 0; triangleId < triangleCount; triangleId++)
             {
-                triangleVertices.Add(d.GetTriangleCircumcenter(triangleId));
+                circumcenters.Add(d.GetTriangleCircumcenter(triangleId));
             }
 
             // Find the voronoi cells, storing the "starting" half edge.
@@ -157,7 +157,7 @@ namespace VoronatorSharp
         public Delaunator Delaunator => d;
 
         // triangle circumcenters
-        public List<Vector2> TriangleVertices => triangleVertices;
+        public List<Vector2> TriangleVertices => circumcenters;
 
         // Map from point index to half edge.
         // The starting half edge is the one with d.Halfedges[e] == -1
@@ -214,7 +214,7 @@ namespace VoronatorSharp
             var e = e0;
             do
             {
-                vertices.Add(triangleVertices[EdgeIndexToTriangleIndex(e)]);
+                vertices.Add(circumcenters[EdgeIndexToTriangleIndex(e)]);
                 e = d.Halfedges[NextHalfedge(e)];
             } while (e != e0 && e != -1);
             ray1 = vectors[i * 2];
