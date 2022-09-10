@@ -44,6 +44,17 @@ for (var i=0; i < points.Length; i++)
 }
 ```
 
+Voronoi cells on the outside of the diagram can be *unbounded* meaning they extend off to infinity, and may have less than 3 vertices. 
+For this reason, some methods come in a "clipped" and "unclipped" variety. 
+A clipped method works with voronoi cells that have been cut to fit inside a rectangle called the clipping rectangle.
+
+The clipping rectangle is by default large enough to cover all bounded cells, but 
+can be set to anything in the constructor.
+
+Clipped methods also deal better with degenerate cases such as many cells sharing the same vertex, so are recommended in most cases,
+despite being slightly slower.
+
+### Methods
 
 The key methods are documented below - there are further methods and comments in the source.
 
@@ -52,7 +63,6 @@ public List<Vector2> Voronator.GetPolygon(int i)
 ```
 Returns the vertices of the voronoi cell, without any clipping.
 
-Voronoi cells on the outside of the diagram can be *unbounded* meaning they extend off to infinity, and may have less than 3 vertices. You can deal with manually, or work with clipped polygons which are always finite.
 
 ```csharp
 public bool Voronator.GetPolygon(int i, List<Vector2> vertices, out Vector2 ray1, out Vector2 ray2)
@@ -66,15 +76,17 @@ public List<Vector2> Voronator.GetClippedPolygon(int i)
 Returns the vertices of the voronoi cell i after clipping to the clipping rectangle.
 Returns null if the polygon is fully outside the clipping rectangle.
 
-The clipping rectangle is by default large enough to cover all bounded cells, but 
-can be set to anything in the constructor.
-
 
 ```csharp
 public IEnumerable<int> Voronator.Neighbors(int i)
 ```
 Returns the Voronoi cells that border the given cell.
-This ignores clipping.
+This ignores clipping and may return odd results in some degenerate cases.
+
+```csharp
+public IEnumerable<int> Voronator.Neighbors(int i)
+```
+Returns the Voronoi cells that border the given cell inside the clipping rectangle.
 
 ```csharp
 public int Voronator.Find(Vector2 u, int i = 0)
@@ -98,6 +110,8 @@ Unbounded cells are clipped down, which tends to move them inwards.
 
 The Delaunator class computes a Delaunay triangulation for a set of points.
 The API similar to [DelaunatorSharp](https://github.com/nol1fe/delaunator-sharp), and you can find a helpful description of this datastructure [here](https://mapbox.github.io/delaunator/).
+
+### Methods
 
 The key methods are documented below - there are further methods and comments in the source.
 

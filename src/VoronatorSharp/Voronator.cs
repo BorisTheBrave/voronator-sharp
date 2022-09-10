@@ -382,6 +382,7 @@ namespace VoronatorSharp
         /// <summary>
         /// Returns the Voronoi cells that border the given cell.
         /// This ignores clipping.
+        /// This may give surprising results in degenerate cases that more than 3 cells meet at a point.
         /// </summary>
         public IEnumerable<int> Neighbors(int i)
         {
@@ -392,14 +393,48 @@ namespace VoronatorSharp
             {
                 var t = d.Triangles[e];
                 yield return t;
-                e = NextHalfedge(e);
-                if (d.Triangles[e] != i) break; // bad triangulation
-                e = d.Halfedges[e];
+                var e1 = NextHalfedge(e);
+                if (d.Triangles[e1] != i) break; // bad triangulation
+                e = d.Halfedges[e1];
                 if (e == -1)
                 {
+                    yield return d.Triangles[NextHalfedge(e1)];
                     break;
                 }
             } while (e != e0);
+        }
+
+        /// <summary>
+        /// Returns the Voronoi cells that border the given cell.
+        /// This uses clipping.
+        /// </summary>
+        public IEnumerable<int> ClippedNeighbors(int i)
+        {
+            var ci = GetClippedPolygon(i);
+            if (ci == null)
+                yield break;
+            foreach (var j in Neighbors(i))
+            {
+                var cj = GetClippedPolygon(j);
+                if (cj == null) continue;
+                // find the common edge
+                var li = ci.Count;
+                var lj = cj.Count;
+                for (var ai = 0; ai < li; ai++)
+                {
+                    for (var aj = 0; aj < lj; aj++)
+                    {
+                        if (ci[ai] == cj[aj]
+                        && ci[(ai + 1) % li] == cj[(aj + lj - 1) % lj]
+                        )
+                        {
+                            yield return j;
+                            ai = li;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
