@@ -11,7 +11,7 @@ namespace VoronatorSharp.Test
         public void TestBasicVoronoi()
         {
             var points = new List<Vector2>(){
-                new Vector2(0, 0), 
+                new Vector2(0, 0),
                 new Vector2(1, 0),
                 new Vector2(0, 1),
             };
@@ -85,6 +85,102 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 2, 0 }, v.Neighbors(1).ToArray());
             CollectionAssert.AreEqual(new[] { 2, 0 }, v.ClippedNeighbors(1).ToArray());
+        }
+
+        [TestMethod]
+        public void TestOnePointDiagram()
+        {
+            var points = new List<Vector2>(){
+                new Vector2(0, 0),
+            };
+            var v = new Voronator(points, new Vector2(-2, -1), new Vector2(2, 1));
+            CollectionAssert.AreEqual(
+                new List<Vector2>()
+                {
+                    new Vector2(2, -1),
+                    new Vector2(2, 1),
+                    new Vector2(-2, 1),
+                    new Vector2(-2, -1),
+                },
+                v.GetClippedPolygon(0)
+                );
+            CollectionAssert.AreEqual(new int[0], v.Neighbors(0).ToArray());
+            CollectionAssert.AreEqual(new int[0], v.ClippedNeighbors(0).ToArray());
+        }
+
+        [TestMethod]
+        public void TestTwoPointDiagram()
+        {
+            var points = new List<Vector2>(){
+                new Vector2(-1, 0),
+                new Vector2(1, 0),
+            };
+            var v = new Voronator(points, new Vector2(-2, -1), new Vector2(2, 1));
+            CollectionAssert.AreEqual(
+                new List<Vector2>()
+                {
+                    new Vector2(-2, 1),
+                    new Vector2(-2, -1),
+                    new Vector2(0, -1),
+                    new Vector2(0, 1),
+                },
+                v.GetClippedPolygon(0)
+                );
+            CollectionAssert.AreEqual(new[] { 1 }, v.Neighbors(0).ToArray());
+            CollectionAssert.AreEqual(new[] { 1 }, v.ClippedNeighbors(0).ToArray());
+        }
+
+        [TestMethod]
+        public void TestCollinearPointDiagram()
+        {
+            var points = new List<Vector2>(){
+                new Vector2(-1, 0),
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+            };
+            var v = new Voronator(points, new Vector2(-2, -1), new Vector2(2, 1));
+
+
+            CollectionAssert.AreEqual(
+                new List<Vector2>()
+                {
+                    new Vector2(-2, 1),
+                    new Vector2(-2, -1),
+                    new Vector2(-0.5f, -1),
+                    new Vector2(-0.5f, 1),
+                },
+                v.GetClippedPolygon(0)
+                );
+            CollectionAssert.AreEqual(new[] { 1 }, v.Neighbors(0).ToArray());
+            CollectionAssert.AreEqual(new[] { 1 }, v.ClippedNeighbors(0).ToArray());
+
+            var p = v.GetClippedPolygon(1);
+            CollectionAssert.AreEqual(
+                new List<Vector2>()
+                {
+                    new Vector2(-0.5f, 1),
+                    new Vector2(-0.5f, -1),
+                    new Vector2(0.5f, -1),
+                    new Vector2(0.5f, 1),
+                },
+                v.GetClippedPolygon(1)
+                );
+            CollectionAssert.AreEqual(new[] { 0, 2 }, v.Neighbors(1).ToArray());
+            CollectionAssert.AreEqual(new[] { 0, 2 }, v.ClippedNeighbors(1).ToArray());
+        }
+
+        [TestMethod]
+        public void TestCollinearPointDiagram2()
+        {
+            var points = new List<Vector2>(){
+                new Vector2(-1, -1),
+                new Vector2(0, 0),
+                new Vector2(1, 1),
+            };
+            var v = new Voronator(points, new Vector2(-1, -1), new Vector2(1, 1));
+
+            Assert.AreEqual(6, v.GetClippedPolygon(1).Count);
+            var p = v.GetClippedPolygon(1);
         }
     }
 }

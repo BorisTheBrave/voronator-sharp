@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 #if UNITY_2019_1_OR_NEWER
 using UnityEngine;
@@ -24,9 +25,11 @@ namespace VoronatorSharp
         // triangle circumcenters, plus some extra vertices on the end
         private List<Vector2> triangleVertices;
 
-        // Map from point index to a half edge.
-        // The starting half edge is the one with d.Halfedges[e] == -1.
-        // Or an arbitrary choice if there isn't one.
+        /// <summary>
+        /// Map from point index to a half edge. 
+        /// The starting half edge is the one with d.Halfedges[e] == -1.
+        /// Or an arbitrary choice if there isn't one.
+        /// </summary>
         private int[] inedges;
 
         // Vectors holds two vectors for each hull point, indicating the directions of the rays outwards
@@ -34,6 +37,11 @@ namespace VoronatorSharp
 
         // Clipping rectangle used for GetClippedPolygon.
         Vector2 clipMin, clipMax;
+
+        // In collinear situations, gives the normal to the line the cells run in.
+        // In this case, we don't use a delaunay triangulation at all.
+        // Instead we use Delaunator.Hull which contains an ordered set of vertices.
+        Vector2? collinearNormal;
 
         public Voronator(IList<Vector2> points, Vector2 clipMin, Vector2 clipMax)
         {
@@ -73,6 +81,28 @@ namespace VoronatorSharp
             // Actually do delauney triangulation
             d = new Delaunator(points.ToArray());
 
+            if(d.Hull.Length > 0 && d.Triangles.Length == 0)
+            {
+                // The points are collinear
+                var first = points[d.Hull[0]];
+                var last = points[d.Hull[(d.Hull.Length - 1)]];
+                var l = last - first;
+                collinearNormal = new Vector2(l.y, -l.x).normalized;
+
+                /*
+                // d3-delaunay uses this hack to get a roughly accurate triangulation despite triangulation
+                if (d.Hull.Length >= 3)
+                {
+                    var r = (first - last).magnitude * 1e-6f;
+                    var jittered = points
+                        .Select(v => new Vector2(v.x + (float)Math.Sin(v.x + v.y) * r, v.y + (float)Math.Cos(v.x - v.y) * r))
+                        .ToArray();
+                    d = new Delaunator(jittered);
+                }
+                */
+            }
+
+
             // Inverse lookup of hull
             hullIndex = new int[points.Count];
             for (var i = 0; i < hullIndex.Length; ++i)
@@ -109,7 +139,7 @@ namespace VoronatorSharp
             }
 
             // Compute exterior rays
-            vectors = new Vector2[d.Points.Length * 2];
+            vectors = new Vector2[d.Points.Count * 2];
             var h = d.Hull[d.Hull.Length - 1];
             int p0, p1 = h * 2;
             Vector2 v0, v1 = points[h];
@@ -166,6 +196,14 @@ namespace VoronatorSharp
         /// <returns>True if successful</returns>
         public bool GetPolygon(int i, List<Vector2> vertices, out Vector2 ray1, out Vector2 ray2)
         {
+            if(collinearNormal != null)
+            {
+                // There's nothing sensible to return here except for the ends
+                // of the hull, it's not worth worrying abou
+                ray1 = ray2 = default;
+                return false;
+            }
+
             var e0 = inedges[i];
             if (e0 == -1)
             {
@@ -202,6 +240,11 @@ namespace VoronatorSharp
                 };
             }
 
+            if(collinearNormal != null)
+            {
+                return ClipCollinear(i);
+            }
+
             var points = GetPolygon(i);
             var v = i * 2;
             if(vectors[v] == default)
@@ -214,7 +257,7 @@ namespace VoronatorSharp
             }
         }
 
-        /// Clips vornoi cell i, a polygon with the given points to the bounding rectangle.
+        /// Clips vornoi cell i, a polygon with the given points to the clipping rectangle.
         /// Returns null if the the polygon doesn't intersect the bounds.
         private List<Vector2> ClipFinite(int i, List<Vector2> points)
         {
@@ -305,7 +348,7 @@ namespace VoronatorSharp
             }
         }
 
-        /// Clips vornoi cell i, an open polygon with the given points and two open rays, to the bounding rectabgle.
+        /// Clips voronoi cell i, an open polygon with the given points and two open rays, to the clipping rectabgle.
         /// Returns null if the the polygon doesn't intersect the bounds.
         private List<Vector2> ClipInfinite(int i, List<Vector2> points, Vector2 v0, Vector2 vn)
         {
@@ -341,6 +384,53 @@ namespace VoronatorSharp
             return P;
         }
 
+        /// <summary>
+        /// Clips the voronoi cell to the clipping rectangle.
+        /// This handles the case that there's only collinear points,
+        /// which means that the polygon can be open on both sides.
+        /// </summary>
+        private List<Vector2> ClipCollinear(int i)
+        {
+            var n = collinearNormal.Value;
+            var hi = hullIndex[i];
+            if (hi == 0)
+            {
+                var v0 = this.points[d.Hull[0]];
+                var v1 = this.points[d.Hull[1]];
+                var points = new List<Vector2> { (v0 + v1) / 2 };
+                return ClipInfinite(i, points, n, -n);
+            }
+            else if (hi == d.Hull.Length - 1)
+            {
+                var v0 = this.points[d.Hull[hi - 1]];
+                var v1 = this.points[d.Hull[hi]];
+                var points = new List<Vector2> { (v0 + v1) / 2 };
+                return ClipInfinite(i, points, -n, n);
+            }
+            else if (hi == -1)
+            {
+                return null;
+            }
+            else
+            {
+                var v0 = this.points[d.Hull[hi - 1]];
+                var v1 = this.points[d.Hull[hi]];
+                var v2 = this.points[d.Hull[hi + 1]];
+                var m1 = (v0 + v1) / 2;
+                var m2 = (v1 + v2) / 2;
+                var P = new List<Vector2>();
+                Vector2? p;
+                if ((p = Project(m1, -n)).HasValue) P.Add(p.Value);
+                if ((p = Project(m1, n)).HasValue) P.Add(p.Value);
+                if ((p = Project(m2, n)).HasValue) P.Add(p.Value);
+                Edge(i, EdgeCode(P[P.Count - 2]), EdgeCode(P[P.Count - 1]), P, P.Count - 1);
+
+                if ((p = Project(m2, -n)).HasValue) P.Add(p.Value);
+                Edge(i, EdgeCode(P[P.Count - 1]), EdgeCode(P[0]), P, P.Count);
+                return P;
+            }
+        }
+
         // Given an clipped segment of cell i that goes from edge code e0 to e1,
         // finds the appropriate corner points to insert into P at j.
         // Also removes co-linear edges.
@@ -368,7 +458,7 @@ namespace VoronatorSharp
                 }
             }
 
-            // Look for colinear points to remove
+            // Look for collinear points to remove
             if (P.Count > 2)
             {
                 for (var i2 = 0; i2 < P.Count; i2 += 1)
@@ -392,22 +482,37 @@ namespace VoronatorSharp
         /// </summary>
         public IEnumerable<int> Neighbors(int i)
         {
-            if (inedges[i] == -1 || points.Count == 0) yield break;
-            var e0 = inedges[i];
-            var e = e0;
-            do
+            if (collinearNormal != null)
             {
-                var t = d.Triangles[e];
-                yield return t;
-                var e1 = NextHalfedge(e);
-                if (d.Triangles[e1] != i) break; // bad triangulation
-                e = d.Halfedges[e1];
-                if (e == -1)
+                var hi = hullIndex[i];
+                if (hi > 0)
                 {
-                    yield return d.Triangles[NextHalfedge(e1)];
-                    break;
+                    yield return d.Hull[hi - 1];
                 }
-            } while (e != e0);
+                if (hi < d.Hull.Length - 1)
+                {
+                    yield return d.Hull[hi + 1];
+                }
+            }
+            else
+            {
+                if (inedges.Length <= i || inedges[i] == -1) yield break;
+                var e0 = inedges[i];
+                var e = e0;
+                do
+                {
+                    var t = d.Triangles[e];
+                    yield return t;
+                    var e1 = NextHalfedge(e);
+                    if (d.Triangles[e1] != i) break; // bad triangulation
+                    e = d.Halfedges[e1];
+                    if (e == -1)
+                    {
+                        yield return d.Triangles[NextHalfedge(e1)];
+                        break;
+                    }
+                } while (e != e0);
+            }
         }
 
         /// <summary>
@@ -473,33 +578,66 @@ namespace VoronatorSharp
         // or returns i if there isn't one.
         private int Step(int i, Vector2 u)
         {
-            if (inedges[i] == -1 || points.Count == 0) return (i + 1) % (points.Count);
-            var c = i;
-            var dc = (u - points[i]).sqrMagnitude;
-            var e0 = inedges[i];
-            var e = e0;
-            do
+            if (collinearNormal != null)
             {
-                var t = d.Triangles[e];
-                var dt = (u - points[t]).sqrMagnitude;
-                if (dt < dc) {
-                    dc = dt;
-                    c = t;
-                }
-                e = NextHalfedge(e);
-                if (d.Triangles[e] != i) break; // bad triangulation
-                e = d.Halfedges[e];
-                if (e == -1)
+                var c = i;
+                var dc = (u - points[i]).sqrMagnitude;
+
+                var hi = hullIndex[i];
+                if(hi > 0)
                 {
-                    e = d.Hull[(hullIndex[i] + 1) % d.Hull.Length];
-                    if (e != t)
+                    var t = d.Hull[hi - 1];
+                    var dt = (u - points[t]).sqrMagnitude;
+                    if(dt < dc)
                     {
-                        if ((u - points[e]).sqrMagnitude < dc) return e;
+                        dc = dt;
+                        c = t;
                     }
-                    break;
                 }
-            } while (e != e0);
-            return c;
+                if(hi < d.Hull.Length - 1)
+                {
+
+                    var t = d.Hull[hi + 1];
+                    var dt = (u - points[t]).sqrMagnitude;
+                    if (dt < dc)
+                    {
+                        dc = dt;
+                        c = t;
+                    }
+                }
+                return c;
+            }
+            else
+            {
+                if (inedges[i] == -1 || points.Count == 0) return (i + 1) % (points.Count);
+                var c = i;
+                var dc = (u - points[i]).sqrMagnitude;
+                var e0 = inedges[i];
+                var e = e0;
+                do
+                {
+                    var t = d.Triangles[e];
+                    var dt = (u - points[t]).sqrMagnitude;
+                    if (dt < dc)
+                    {
+                        dc = dt;
+                        c = t;
+                    }
+                    e = NextHalfedge(e);
+                    if (d.Triangles[e] != i) break; // bad triangulation
+                    e = d.Halfedges[e];
+                    if (e == -1)
+                    {
+                        e = d.Hull[(hullIndex[i] + 1) % d.Hull.Length];
+                        if (e != t)
+                        {
+                            if ((u - points[e]).sqrMagnitude < dc) return e;
+                        }
+                        break;
+                    }
+                } while (e != e0);
+                return c;
+            }
         }
 
         // Given a ray of origin u, and direction v,

@@ -25,7 +25,7 @@ namespace VoronatorSharp
         /// <summary>
         /// The initial points Delaunator was constructed with.
         /// </summary>
-        public Vector2[] Points { get; private set; }
+        public IList<Vector2> Points { get; private set; }
 
 
         /// <summary>
@@ -47,25 +47,20 @@ namespace VoronatorSharp
         private readonly int hullStart;
         private readonly int hullSize;
 
-        public Delaunator(Vector2[] points)
+        public Delaunator(IList<Vector2> points)
         {
-            if (points.Length < 3)
-            {
-                throw new ArgumentOutOfRangeException("Need at least 3 points");
-            }
-
             Points = points;
-            coords = new float[Points.Length * 2];
+            coords = new float[Points.Count * 2];
 
-            for (var i = 0; i < Points.Length; i++)
+            for (var i = 0; i < Points.Count; i++)
             {
                 var p = Points[i];
                 coords[2 * i] = p.x;
                 coords[2 * i + 1] = p.y;
             }
 
-            var n = points.Length;
-            var maxTriangles = 2 * n - 5;
+            var n = points.Count;
+            var maxTriangles = Math.Max(2 * n - 5, 0);
 
             Triangles = new int[maxTriangles * 3];
 
@@ -151,7 +146,32 @@ namespace VoronatorSharp
 
             if (minRadius == double.PositiveInfinity)
             {
-                throw new Exception("No Delaunay triangulation exists for this input.");
+                // All points are collinear (or ther's only 1 or 2 points)
+                // order collinear points by dx (or dy if all x are identical)
+                // and return the list as a hull
+                var primaryCoords = new double[n];
+                for (var i = 0; i < n; i++)
+                {
+                    primaryCoords[i] = (coords[2 * i] - coords[0]) == 0 ? (coords[2 * i + 1] - coords[1]) : (coords[2 * i] - coords[0]);
+                }
+                Quicksort(ids, primaryCoords, 0, n - 1);
+                // Trim duplicate points from hull
+                var hull = new int[n];
+                var j = 0;
+                var d0 = double.NegativeInfinity;
+                for (var i = 0; i < n; i++)
+                {
+                    var id = ids[i];
+                    if (primaryCoords[id] > d0)
+                    {
+                        hull[j++] = id;
+                        d0 = primaryCoords[id];
+                    }
+                }
+                Hull = new ArraySegment<int>(hull, 0, j).ToArray();
+                Triangles = new int[0];
+                Halfedges = new int[0];
+                return;
             }
 
             if (Orient(i0x, i0y, i1x, i1y, i2x, i2y))

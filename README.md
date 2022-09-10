@@ -11,6 +11,7 @@ This library features:
  * The implementation attempts to minimize memory allocations.
  * Integrates with Unity or can be be used standalone.
  * Uses [robust orientation code](https://github.com/govert/RobustGeometry.NET).
+ * Handles Voronoi diagrams with only 1 or 2 points, and collinear points.
 
  # Credits
 
@@ -50,9 +51,6 @@ A clipped method works with voronoi cells that have been cut to fit inside a rec
 
 The clipping rectangle is by default large enough to cover all bounded cells, but 
 can be set to anything in the constructor.
-
-Clipped methods also deal better with degenerate cases such as many cells sharing the same vertex, so are recommended in most cases,
-despite being slightly slower.
 
 ### Methods
 
@@ -105,6 +103,25 @@ public List<Vector2> Voronator.GetRelaxedPoints()
 Returns the centroid of each voronoi cell.
 This is suitable for use with Lloyd relaxation.
 Unbounded cells are clipped down, which tends to move them inwards.
+
+### Edge cases
+
+There are some tricky cases that you should be aware of. In all cases, if you stick with the "clipped" methods, these are effectively handled for you.
+
+#### Unbounded cells
+
+Cells on the boundary of the diagram extend to infinity, which means they are not
+representable with a polygon. "Clipped" methods truncate the cells down to a polygon.
+
+#### Degenerate triangulation
+
+VoronatorSharp is based on forming a Delaunay triangulation, then finding the dual.
+
+So it can struggle to deal with the case of more than 3 Voronoi cells meeting at a single point. "Clipped" methods automatically strip zero-sized edges.
+
+#### Collinear points
+
+If all the input points lie in a line (or if there are only two points), then the points are collinear and a triangulation cannot be formed. Voronator contails fallback code to handle this case. The case of a single point is handled similarly.
 
 ## Delaunator
 
