@@ -37,7 +37,7 @@ For Unity, copy the pre-compiled *for Unity* dll into your project, or copy the 
 The Voronator class computes a Voronoi diagram for a set of points.
 
 ```csharp
-var points = new Vector[]{ new Vector(0, 0), new Vector(0, 1), new Vector(1, 0)};
+var points = new Vector2[]{ new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 0)};
 var v = new VoronatorSharp.Voronator(points);
 for (var i=0; i < points.Length; i++)
 {
@@ -135,7 +135,7 @@ The key methods are documented below - there are further methods and comments in
 ```csharp
 public IEnumerable<Triangle> Delaunator.GetTriangles()
 ```
-Returns the points of all triangles in the Delauney triangulation.
+Returns the points of all triangles in the Delaunay triangulation.
 A `Triangle` has the vector location of exactly 3 points, `Point1`, `Point2` and `Point3`, and properties for computing the `Centroid` and `Circumcenter`.
 
 
