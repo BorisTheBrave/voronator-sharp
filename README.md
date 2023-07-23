@@ -104,6 +104,11 @@ Returns the centroid of each voronoi cell.
 This is suitable for use with Lloyd relaxation.
 Unbounded cells are clipped down, which tends to move them inwards.
 
+```csharp
+public Voronator.PolygonStatus GetPolygonStatus(int i)
+```
+Returns an enum indicating how this polygon was handled. Usually it is Voronator`.PolygonStatus.Normal`, but there are other values corresponding to [edge cases described below](#edge-cases).
+
 ### Edge cases
 
 There are some tricky cases that you should be aware of. In all cases, if you stick with the "clipped" methods, these are effectively handled for you.
@@ -122,6 +127,10 @@ So it can struggle to deal with the case of more than 3 Voronoi cells meeting at
 #### Collinear points
 
 If all the input points lie in a line (or if there are only two points), then the points are collinear and a triangulation cannot be formed. Voronator contails fallback code to handle this case. The case of a single point is handled similarly.
+
+#### Duplicate points
+
+Additional points that are an exact duplicate of an earlier point will return a `null` polygon.
 
 ## Delaunator
 
