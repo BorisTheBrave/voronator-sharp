@@ -14,6 +14,8 @@ namespace VoronatorSharp
 
         /// <summary>
         /// One value per half-edge, containing the point index of where a given half edge starts.
+        /// Half-edges are stored in triplets for each triangle in the triangulation,
+        /// so this is essentially the three points of reach triangle, in order.
         /// </summary>
         public int[] Triangles { get; private set; }
 
