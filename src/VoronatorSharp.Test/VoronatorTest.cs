@@ -182,5 +182,32 @@ namespace VoronatorSharp.Test
             Assert.AreEqual(6, v.GetClippedPolygon(1).Count);
             var p = v.GetClippedPolygon(1);
         }
+
+        [TestMethod]
+        public void TestDuplicatePoints()
+        {
+            List<Vector2> points = new List<Vector2>
+            {
+                new Vector2(8.481889f, -10.29803f),
+                new Vector2(14.8841f, -11.41214f),
+                new Vector2(17.28493f, -16.59971f),
+                new Vector2(11.40464f, -14.75447f),
+                new Vector2(4.44571f, -21.02133f),
+                new Vector2(14.29259f, -22.76213f),
+                new Vector2(3.437411f, -9.220477f),//dup
+                new Vector2(17.73516f, -7.305126f),
+                new Vector2(21.68072f, -22.66702f),
+                new Vector2(13.86774f, -26.88861f),
+                new Vector2(2.343594f, -24.34784f),
+                new Vector2(3.437411f, -9.220477f)//dup
+            };
+
+            var v = new VoronatorSharp.Voronator(points);
+            for (var i = 0; i < points.Count; i++)
+            {
+                var vertices = v.GetClippedPolygon(i);
+            }
+            Assert.AreEqual(null, v.GetClippedPolygon(11));
+        }
     }
 }

@@ -124,8 +124,8 @@ namespace VoronatorSharp
             }
 
             // Find the voronoi cells, storing the "starting" half edge.
-            inedges = new int[d.Halfedges.Length];
-            for (var e = 0; e < d.Halfedges.Length; ++e)
+            inedges = new int[points.Count];
+            for (var e = 0; e < points.Count; ++e)
             {
                 inedges[e] = -1;
             }
@@ -261,6 +261,8 @@ namespace VoronatorSharp
         /// Returns null if the the polygon doesn't intersect the bounds.
         private List<Vector2> ClipFinite(int i, List<Vector2> points)
         {
+            if (points == null)
+                return null;
             var n = points.Count;
             List<Vector2> P = null;
             Vector2 v0;
@@ -352,6 +354,8 @@ namespace VoronatorSharp
         /// Returns null if the the polygon doesn't intersect the bounds.
         private List<Vector2> ClipInfinite(int i, List<Vector2> points, Vector2 v0, Vector2 vn)
         {
+            if (points == null)
+                return null;
             var P = new List<Vector2>(points);
             Vector2? p;
             if ((p = Project(P[0], v0)).HasValue) P.Insert(0, p.Value);
