@@ -36,6 +36,38 @@ namespace VoronatorSharp.Test
             CollectionAssert.AreEqual(new[] { 1, 2 }, v.Neighbors(0).ToArray());
             CollectionAssert.AreEqual(new[] { 2, 0 }, v.Neighbors(1).ToArray());
             CollectionAssert.AreEqual(new[] { 0, 1 }, v.Neighbors(2).ToArray());
+
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(0));
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(1));
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(2));
+
+        }
+
+
+        [TestMethod]
+        public void TestBasicVoronoi2()
+        {
+            var points = new List<Vector2>(){
+
+                    new Vector2(-1, -1),
+                    new Vector2(1, -1),
+                    new Vector2(-1, 1),
+                    new Vector2(1, 1),
+                    new Vector2(0, 0),
+            };
+            var v = new Voronator(points);
+            CollectionAssert.AreEqual(
+                new List<Vector2>()
+                {
+                    new Vector2(0, -1),
+                    new Vector2(1, 0),
+                    new Vector2(0, 1),
+                    new Vector2(-1, 0),
+                },
+                v.GetPolygon(4)
+                );
+            Assert.AreEqual(Voronator.PolygonStatus.Normal, v.GetPolygonStatus(4));
+
         }
 
         [TestMethod]
@@ -74,6 +106,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 1, 2, 3 }, v.Neighbors(0).ToArray());
             CollectionAssert.AreEqual(new[] { 1, 3 }, v.ClippedNeighbors(0).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(0));
 
 
             CollectionAssert.AreEqual(
@@ -85,6 +118,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 2, 0 }, v.Neighbors(1).ToArray());
             CollectionAssert.AreEqual(new[] { 2, 0 }, v.ClippedNeighbors(1).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(1));
         }
 
         [TestMethod]
@@ -106,6 +140,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new int[0], v.Neighbors(0).ToArray());
             CollectionAssert.AreEqual(new int[0], v.ClippedNeighbors(0).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Solo, v.GetPolygonStatus(0));
         }
 
         [TestMethod]
@@ -128,6 +163,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 1 }, v.Neighbors(0).ToArray());
             CollectionAssert.AreEqual(new[] { 1 }, v.ClippedNeighbors(0).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(0));
         }
 
         [TestMethod]
@@ -153,6 +189,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 1 }, v.Neighbors(0).ToArray());
             CollectionAssert.AreEqual(new[] { 1 }, v.ClippedNeighbors(0).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(0));
 
             var p = v.GetClippedPolygon(1);
             CollectionAssert.AreEqual(
@@ -167,6 +204,7 @@ namespace VoronatorSharp.Test
                 );
             CollectionAssert.AreEqual(new[] { 0, 2 }, v.Neighbors(1).ToArray());
             CollectionAssert.AreEqual(new[] { 0, 2 }, v.ClippedNeighbors(1).ToArray());
+            Assert.AreEqual(Voronator.PolygonStatus.Collinear, v.GetPolygonStatus(1));
         }
 
         [TestMethod]
@@ -208,6 +246,8 @@ namespace VoronatorSharp.Test
                 var vertices = v.GetClippedPolygon(i);
             }
             Assert.AreEqual(null, v.GetClippedPolygon(11));
+            Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(6));
+            Assert.AreEqual(Voronator.PolygonStatus.Error, v.GetPolygonStatus(11));
         }
     }
 }

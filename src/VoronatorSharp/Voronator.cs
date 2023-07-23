@@ -688,6 +688,81 @@ namespace VoronatorSharp
         }
         #endregion
 
+
+        public enum PolygonStatus
+        {
+            /// <summary>
+            /// A normal polygon 
+            /// </summary>
+            Normal,
+            /// <summary>
+            /// A polygon on the boundary, it extends outwards indefinitely. 
+            /// </summary>
+            Infinite,
+            /// <summary>
+            /// Single point occupies all of space 
+            /// </summary>
+            Solo,
+            /// <summary>
+            /// All the points are in a line, and this is not at either end of the line.
+            /// </summary>
+            Collinear,
+            /// <summary>
+            /// Something else has gone wrong, e.g. duplicate point.
+            /// </summary>
+            Error,
+        }
+
+        public PolygonStatus GetPolygonStatus(int i)
+        {
+            if (i == 0 && d.Hull.Length == 1)
+            {
+                return PolygonStatus.Solo;
+            }
+            if (collinearNormal != null)
+            {
+                // Correspodns to ClipCollinear
+
+                var n = collinearNormal.Value;
+                var hi = hullIndex[i];
+                if (hi == 0)
+                {
+                    return PolygonStatus.Infinite;
+                }
+                else if (hi == d.Hull.Length - 1)
+                {
+                    return PolygonStatus.Infinite;
+                }
+                else if (hi == -1)
+                {
+                    return PolygonStatus.Error;
+                }
+                else
+                {
+                    return PolygonStatus.Collinear;
+                }
+            }
+
+            // Corresponds to null == GetPolygon(i)
+            var e0 = inedges[i];
+            if (e0 == -1)
+            {
+                return PolygonStatus.Error;
+            }
+
+            var v = i * 2;
+            if (vectors[v] == default)
+            {
+                // Crresponds to ClipFinite
+                return PolygonStatus.Normal;
+            }
+            else
+            {
+                // Crresponds to ClipInfinite
+                return PolygonStatus.Infinite;
+            }
+        }
+
         /// <summary>
         /// Returns the centroid of each voronoi cell.
         /// This is suitable for use with Lloyd relaxation.
@@ -724,7 +799,7 @@ namespace VoronatorSharp
             return new Vector2(centerX / accumulatedArea, centerY / accumulatedArea);
         }
 
-        public IEnumerable<(Vector2, Vector2)> GetVoronoiEdges()
+        private IEnumerable<(Vector2, Vector2)> GetVoronoiEdges()
         {
             /*
             for (var e = 0; e < d.Triangles.Length; e++)
