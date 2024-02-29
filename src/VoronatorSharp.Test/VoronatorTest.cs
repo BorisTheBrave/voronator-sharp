@@ -249,5 +249,20 @@ namespace VoronatorSharp.Test
             Assert.AreEqual(Voronator.PolygonStatus.Infinite, v.GetPolygonStatus(6));
             Assert.AreEqual(Voronator.PolygonStatus.Error, v.GetPolygonStatus(11));
         }
+
+        [TestMethod]
+        public void TestRelaxation()
+        {
+            List<Vector2> points = new List<Vector2>
+            {
+                new Vector2(-1f, -1f),
+                new Vector2(1f, 1f),
+            };
+
+            var v = new Voronator(points);
+            var relaxed = v.GetRelaxedPoints();
+            Assert.AreEqual((relaxed[0] - points[0] / 3f).magnitude, 0f, 1e-6);
+            Assert.AreEqual((relaxed[1] - points[1] / 3f).magnitude, 0f, 1e-6);
+        }
     }
 }
