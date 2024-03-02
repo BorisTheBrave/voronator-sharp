@@ -773,7 +773,7 @@ namespace VoronatorSharp
             var relaxedPoints = new List<Vector2>();
             for (var i = 0; i < points.Count; i++)
             {
-                relaxedPoints.Add(GetCentroid(GetPolygon(i)));
+                relaxedPoints.Add(GetCentroid(GetClippedPolygon(i)));
             }
             return relaxedPoints;
         }
