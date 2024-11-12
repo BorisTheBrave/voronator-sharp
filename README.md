@@ -102,6 +102,13 @@ public List<Vector2> Voronator.GetRelaxedPoints()
 ```
 Returns the centroid of each voronoi cell.
 This is suitable for use with Lloyd relaxation.
+Unbounded cells return their original point.
+
+```csharp
+public List<Vector2> Voronator.GetClippedRelaxedPoints()
+```
+Returns the centroid of each voronoi cell.
+This is suitable for use with Lloyd relaxation.
 Unbounded cells are clipped down, which tends to move them inwards.
 
 ```csharp

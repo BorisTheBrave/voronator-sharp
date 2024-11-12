@@ -251,7 +251,7 @@ namespace VoronatorSharp.Test
         }
 
         [TestMethod]
-        public void TestRelaxation()
+        public void TestGetRelaxedPoints()
         {
             List<Vector2> points = new List<Vector2>
             {
@@ -261,6 +261,21 @@ namespace VoronatorSharp.Test
 
             var v = new Voronator(points);
             var relaxed = v.GetRelaxedPoints();
+            Assert.AreEqual((relaxed[0] - points[0]).magnitude, 0f, 1e-6);
+            Assert.AreEqual((relaxed[1] - points[1]).magnitude, 0f, 1e-6);
+        }
+
+        [TestMethod]
+        public void TestGetClippedRelaxedPoints()
+        {
+            List<Vector2> points = new List<Vector2>
+            {
+                new Vector2(-1f, -1f),
+                new Vector2(1f, 1f),
+            };
+
+            var v = new Voronator(points);
+            var relaxed = v.GetClippedRelaxedPoints();
             Assert.AreEqual((relaxed[0] - points[0] / 3f).magnitude, 0f, 1e-6);
             Assert.AreEqual((relaxed[1] - points[1] / 3f).magnitude, 0f, 1e-6);
         }
