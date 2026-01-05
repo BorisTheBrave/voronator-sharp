@@ -9,7 +9,7 @@ This library features:
  * Voronoi polygons can be clipped to a rectangular area.
  * Uses a `n log(n)` [sweephull algorithm](https://github.com/mapbox/delaunator#papers).
  * The implementation attempts to minimize memory allocations.
- * Integrates with Unity or can be be used standalone.
+ * Integrates with Unity or can be used standalone.
  * Uses [robust orientation code](https://github.com/govert/RobustGeometry.NET).
  * Handles Voronoi diagrams with only 1 or 2 points, and collinear points.
 
@@ -26,7 +26,7 @@ All code is licensed on MIT-like terms.
 
 Currently this is not listed on NuGet nor available as a Unity package. Please contact me if these interest you.
 
-You can find pre-compiled dlls on the GitHub release page, these can be directly refenced by other projects and have no dependencies.
+You can find pre-compiled dlls on the GitHub release page, these can be directly referenced by other projects and have no dependencies.
 
 For Unity, copy the pre-compiled *for Unity* dll into your project, or copy the source code itself.
 
@@ -114,7 +114,7 @@ Unbounded cells are clipped down, which tends to move them inwards.
 ```csharp
 public Voronator.PolygonStatus GetPolygonStatus(int i)
 ```
-Returns an enum indicating how this polygon was handled. Usually it is Voronator`.PolygonStatus.Normal`, but there are other values corresponding to [edge cases described below](#edge-cases).
+Returns an enum indicating how this polygon was handled. Usually it is `Voronator.PolygonStatus.Normal`, but there are other values corresponding to [edge cases described below](#edge-cases).
 
 ### Edge cases
 
@@ -133,7 +133,7 @@ So it can struggle to deal with the case of more than 3 Voronoi cells meeting at
 
 #### Collinear points
 
-If all the input points lie in a line (or if there are only two points), then the points are collinear and a triangulation cannot be formed. Voronator contails fallback code to handle this case. The case of a single point is handled similarly.
+If all the input points lie in a line (or if there are only two points), then the points are collinear and a triangulation cannot be formed. Voronator contains fallback code to handle this case. The case of a single point is handled similarly.
 
 #### Duplicate points
 
@@ -142,7 +142,7 @@ Additional points that are an exact duplicate of an earlier point will return a 
 ## Delaunator
 
 The Delaunator class computes a Delaunay triangulation for a set of points.
-The API similar to [DelaunatorSharp](https://github.com/nol1fe/delaunator-sharp), and you can find a helpful description of this datastructure [here](https://mapbox.github.io/delaunator/).
+The API is similar to [DelaunatorSharp](https://github.com/nol1fe/delaunator-sharp), and you can find a helpful description of this datastructure [here](https://mapbox.github.io/delaunator/).
 
 ### Methods
 

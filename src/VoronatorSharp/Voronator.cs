@@ -16,7 +16,7 @@ namespace VoronatorSharp
     {
         private IList<Vector2> points;
 
-        // Delauney triangulation dual to the voronoi cells
+        // Delaunay triangulation dual to the voronoi cells
         private Delaunator d;
 
         // Inverse lookup of d.Hull
@@ -78,7 +78,7 @@ namespace VoronatorSharp
         {
             this.points = points;
 
-            // Actually do delauney triangulation
+            // Actually do Delaunay triangulation
             d = new Delaunator(points.ToArray());
 
             if(d.Hull.Length > 0 && d.Triangles.Length == 0)
@@ -153,7 +153,7 @@ namespace VoronatorSharp
             }
         }
 
-        // Delauney triangulation dual to the voronoi cells
+        // Delaunay triangulation dual to the voronoi cells
         public Delaunator Delaunator => d;
 
         // triangle circumcenters
@@ -167,7 +167,7 @@ namespace VoronatorSharp
         public Vector2 ClipMin => clipMin;
         public Vector2 ClipMax => clipMax;
 
-        #region d3-delauney
+        #region d3-delaunay
 
         /// <summary>
         /// Returns the vertices of the voronoi cell, without any clipping.
@@ -202,7 +202,7 @@ namespace VoronatorSharp
             if(collinearNormal != null)
             {
                 // There's nothing sensible to return here except for the ends
-                // of the hull, it's not worth worrying abou
+                // of the hull, it's not worth worrying about
                 ray1 = ray2 = default;
                 return false;
             }
@@ -260,8 +260,8 @@ namespace VoronatorSharp
             }
         }
 
-        /// Clips vornoi cell i, a polygon with the given points to the clipping rectangle.
-        /// Returns null if the the polygon doesn't intersect the bounds.
+        /// Clips voronoi cell i, a polygon with the given points to the clipping rectangle.
+        /// Returns null if the polygon doesn't intersect the bounds.
         private List<Vector2> ClipFinite(int i, List<Vector2> points)
         {
             if (points == null)
@@ -353,8 +353,8 @@ namespace VoronatorSharp
             }
         }
 
-        /// Clips voronoi cell i, an open polygon with the given points and two open rays, to the clipping rectabgle.
-        /// Returns null if the the polygon doesn't intersect the bounds.
+        /// Clips voronoi cell i, an open polygon with the given points and two open rays, to the clipping rectangle.
+        /// Returns null if the polygon doesn't intersect the bounds.
         private List<Vector2> ClipInfinite(int i, List<Vector2> points, Vector2 v0, Vector2 vn)
         {
             if (points == null)
@@ -724,7 +724,7 @@ namespace VoronatorSharp
             }
             if (collinearNormal != null)
             {
-                // Correspodns to ClipCollinear
+                // Corresponds to ClipCollinear
 
                 var n = collinearNormal.Value;
                 var hi = hullIndex[i];
@@ -756,12 +756,12 @@ namespace VoronatorSharp
             var v = i * 2;
             if (vectors[v] == default)
             {
-                // Crresponds to ClipFinite
+                // Corresponds to ClipFinite
                 return PolygonStatus.Normal;
             }
             else
             {
-                // Crresponds to ClipInfinite
+                // Corresponds to ClipInfinite
                 return PolygonStatus.Infinite;
             }
         }

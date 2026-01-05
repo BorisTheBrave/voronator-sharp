@@ -15,7 +15,7 @@ namespace VoronatorSharp
         /// <summary>
         /// One value per half-edge, containing the point index of where a given half edge starts.
         /// Half-edges are stored in triplets for each triangle in the triangulation,
-        /// so this is essentially the three points of reach triangle, in order.
+        /// so this is essentially a list of triangle points flattened into a single array.
         /// </summary>
         public int[] Triangles { get; private set; }
 
@@ -148,7 +148,7 @@ namespace VoronatorSharp
 
             if (minRadius == double.PositiveInfinity)
             {
-                // All points are collinear (or ther's only 1 or 2 points)
+                // All points are collinear (or there's only 1 or 2 points)
                 // order collinear points by dx (or dy if all x are identical)
                 // and return the list as a hull
                 var primaryCoords = new double[n];
@@ -564,7 +564,7 @@ namespace VoronatorSharp
 
         #region GetMethods
         /// <summary>
-        /// Gets a triangle with the three points around of a given trianle index.
+        /// Gets a triangle with the three points around a given triangle index.
         /// </summary>
         public Triangle GetTriangle(int t)
         {
@@ -573,7 +573,7 @@ namespace VoronatorSharp
         }
 
         /// <summary>
-        /// Returns the points of all triangles in the Delauney triangulation
+        /// Returns the points of all triangles in the Delaunay triangulation
         /// </summary>
         public IEnumerable<Triangle> GetTriangles()
         {
